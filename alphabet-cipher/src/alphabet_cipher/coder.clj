@@ -1,56 +1,70 @@
-(ns alphabet-cipher.coder)
+(ns alphabet-cipher.coder
+  (:require [clojure.string :refer [index-of]]))
 
 (def alphabet-count 26)
-(def alphabet-range  (take alphabet-count (iterate #(char (+ 1 (int %))) \a)))
+;; (def alphabet-range  (take alphabet-count (iterate #(char (+ 1 (int %))) \a)))
+(def alphabet-range (map char (range (int \a) (+ (int \z) 1) 1)))
 
-(defn get-alphabet-num [x]
-  (loop [x x l alphabet-range cnt 0]
-    (if (= x (first l))
-      cnt
-      (recur x (rest l) (inc cnt)))))
+(defn get-alphabet-index [x]
+  (- (int x) (int \a)))
 
 (defn get-alphabet-cycle [start-ch]
   (take-last alphabet-count 
-             (take (+ (get-alphabet-num start-ch) alphabet-count) (cycle alphabet-range))))
+             (take (+ (get-alphabet-index start-ch) alphabet-count) (cycle alphabet-range))))
 
-;; test
-(def A (get-alphabet-cycle \a))         ;0
-(def B (get-alphabet-cycle \b))         ;1
-(def C (get-alphabet-cycle \c))         ;2
-(def D (get-alphabet-cycle \d))         ;3
-(def E (get-alphabet-cycle \e))         ;4
-(def F (get-alphabet-cycle \f))         ;5
-(def G (get-alphabet-cycle \g))         ;6
-(def H (get-alphabet-cycle \h))         ;7
-(def I (get-alphabet-cycle \i))         ;8
-(def J (get-alphabet-cycle \j))         ;9
-(def K (get-alphabet-cycle \k))         ;10
-(def L (get-alphabet-cycle \l))         ;11
-(def M (get-alphabet-cycle \m))         ;12
-(def N (get-alphabet-cycle \n))         ;13
-(def O (get-alphabet-cycle \o))         ;14
-(def P (get-alphabet-cycle \p))         ;15
-(def Q (get-alphabet-cycle \q))         ;16
-(def R (get-alphabet-cycle \r))         ;17
-(def S (get-alphabet-cycle \s))         ;18
-(def T (get-alphabet-cycle \t))         ;19
-(def U (get-alphabet-cycle \u))         ;20
-(def V (get-alphabet-cycle \v))         ;21
-(def W (get-alphabet-cycle \w))         ;22
-(def X (get-alphabet-cycle \x))         ;23
-(def Y (get-alphabet-cycle \y))         ;24
-(def Z (get-alphabet-cycle \z))         ;25
-
+;; (defn get-alphabet-cycle [start-ch]
+;;   (take alphabet-count (iterate #(char (+ 1 (int %))) start-ch)))
 
 ;; (partition 2 (interleave (seq "meetmebythetree") (cycle (seq "scones"))))
 
-(defn encode [keyword message]
-  
-  )
+;; (defn encode [keyword message]
+;;   (apply #(nth (get-alphabet-cycle (first %)) (get-alphabet-index (second %)))
+;;        (partition 2 (interleave (seq message) (cycle (seq keyword))))))
 
+
+(defn pair-key-message [keyword message]
+  (partition 2 (interleave (seq message) (cycle (seq keyword)))))
+
+;; (= message "meetmebythetree")
+;; (= keyword "scones") 
+;; (= (encode keyword message) "egsgqwtahuiljgs")
+(defn encode [keyword message]
+  (apply str 
+         (map #(nth (get-alphabet-cycle (first %)) (get-alphabet-index (second %)))
+              (pair-key-message keyword message))))
+
+;; (= message "egsgqwtahuiljgs")
+;; (= keyword "scones") 
+;; (= (decode "scones" "egsgqwtahuiljgs") "meetmebythetree")
 (defn decode [keyword message]
-  "decodeme")
+  (apply str
+         (map #(nth (get-alphabet-cycle \a) 
+                    (mod (+ (- alphabet-count (get-alphabet-index (second %)))
+                            (get-alphabet-index (first %))) alphabet-count))
+              (pair-key-message keyword message))))
+              
+(defn get-index-alphabet-cycle [ch cy]
+  (index-of (apply str cy) ch))
+
+(defn split-in-two [s]
+  (let [mid (/ (count s) 2)]
+    (split-at mid s)))
+
+;; 두개의 문자열을 비교하며 뒤에서 부터 잘라낸다.
+(defn get-key-string[s]
+  (loop [origin s target s]
+    (let [left  (apply str (first (split-in-two target)))
+          right (apply str (second (split-in-two target)))]
+      (if (empty? target)
+        origin
+        (if (and (= left right) (not (= (first (split-in-two left))
+                                        (second (split-in-two left)))))
+          left
+          (recur origin (apply str (drop-last target))))))))
 
 (defn decipher [cipher message]
-  "decypherme")
-
+  (get-key-string
+   (apply str
+          (map #(nth (get-alphabet-cycle \a)
+                     (get-index-alphabet-cycle (second %) (get-alphabet-cycle (first %))))
+               (partition 2 (interleave (seq message) (seq cipher)))))))
