@@ -4,6 +4,7 @@
             [clojure.set]))
 
 (defn validate-move [step1 step2]
+  (println (str "step1=" step1 " step2=" step2))
   (testing "only you and another thing can move"
     (let [diff1 (clojure.set/difference step1 step2)
           diff2 (clojure.set/difference step2 step1)
