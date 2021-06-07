@@ -32,30 +32,105 @@
 (defn push [seq target]
   (conj seq target))
 
-(defn get-on-a-boat [pos target]
-  (push (second pos) target))
+(defn get-boat [pos]
+  (second pos))
 
-(defn get-off-the-boat [pos target]
-  (pop (second pos) target))
+(defn get-land [pos]
+  (first pos))
 
-(defn landing-on-the-island [pos target]
-  (push (last pos) target))
+(defn get-island [pos]
+  (last pos))
 
-(defn out-off-the-island [pos target]
-  (pop (last pos) target))
+(defn put-target [pos a b]
+  (if (nil? b)
+    (push pos a)
+    (push (push pos a) b)))
 
-(defn landing-on-land [pos target]
-  (push (first pos) target))
+(defn pop-target [pos a b]
+  (if (nil? b)
+    (pop pos a)
+    (pop (pop pos a) b)))
 
-(defn out-off-the-land [pos target]
-  (pop (first pos) target))
 
-;; (defn cur-pos [pos]
-;;   (let [step (count pos) cur-pos (last pos)]
-;;     (cond (= step 1) (conj pos 
+(defn pop-land [pos a b]
+  (pop-target (get-land pos) a b))
+
+(defn put-land [pos a b]
+  (put-target (get-land pos) a b))
+
+(defn pop-boat [pos a b]
+  (pop-target (get-boat pos) a b))
+
+(defn put-boat [pos a b]
+  (put-target (get-boat pos) a b))
+
+(defn pop-island [pos a b]
+  (pop-target (get-island pos) a b))
+
+(defn put-island [pos a b]
+  (put-target (get-island pos) a b))
+
+
+(defn current-pos [pos]
+  (let [step (count pos) cur-pos (last pos)]
+    (cond (= step 1)
+          (current-pos (conj pos (conj (conj (conj [] (pop-land cur-pos :you :goose))
+                                             (put-boat cur-pos :you :goose))
+                                       (get-island cur-pos))))
+          (= step 2)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (pop-boat cur-pos :you :goose))
+                                       (put-island cur-pos :you :goose))))
+          (= step 3)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (put-boat cur-pos :you nil))
+                                       (pop-island cur-pos :you nil))))
+          (= step 4)
+          (current-pos (conj pos (conj (conj (conj [] (put-land cur-pos :you nil))
+                                             (pop-boat cur-pos :you nil))
+                                       (get-island cur-pos))))
+          (= step 5)
+          (current-pos (conj pos (conj (conj (conj [] (pop-land cur-pos :you :corn))
+                                             (put-boat cur-pos :you :corn))
+                                       (get-island cur-pos))))
+          (= step 6)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (pop-boat cur-pos :you :corn))
+                                       (put-island cur-pos :you :corn))))
+          (= step 7)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (put-boat cur-pos :you :goose))
+                                       (pop-island cur-pos :you :goose))))
+          (= step 8)
+          (current-pos (conj pos (conj (conj (conj [] (put-land cur-pos :you :goose))
+                                             (pop-boat cur-pos :you :goose))
+                                       (get-island cur-pos))))
+          (= step 9)
+          (current-pos (conj pos (conj (conj (conj [] (pop-land cur-pos :you :fox))
+                                             (put-boat cur-pos :you :fox))
+                                       (get-island cur-pos))))
+          (= step 10)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (pop-boat cur-pos :you :fox))
+                                       (put-island cur-pos :you :fox))))
+          (= step 11)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (put-boat cur-pos :you nil))
+                                       (pop-island cur-pos :you nil))))
+          (= step 12)
+          (current-pos (conj pos (conj (conj (conj [] (put-land cur-pos :you nil))
+                                             (pop-boat cur-pos :you nil))
+                                       (get-island cur-pos))))
+          (= step 13)
+          (current-pos (conj pos (conj (conj (conj [] (pop-land cur-pos :you :goose))
+                                             (put-boat cur-pos :you :goose))
+                                       (get-island cur-pos))))
+          (= step 14)
+          (current-pos (conj pos (conj (conj (conj [] (get-land cur-pos))
+                                             (pop-boat cur-pos :you :goose))
+                                       (put-island cur-pos :you :goose))))
           
-
-(defn make-plan [])
-
+          :else pos)))
+          
 (defn river-crossing-plan []
-  start-pos)
+  (current-pos start-pos))
